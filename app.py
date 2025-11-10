@@ -26,15 +26,26 @@ def index():
 @app.route('/quantize', methods=['POST'])
 def quantize_image_route():
     """Recebe um pedido para quantizar uma imagem e retorna a imagem e a paleta."""
-    data = request.get_json()
-    image_key = data.get('image')
-    num_colors = int(data.get('num_colors', 8)) # Padrão de 8 cores
+        
+    # Pega o número de cores do formulário (FormData)
+    num_colors = int(request.form.get('num_colors', 8))
     
-    if image_key not in IMAGE_FILES:
-        return jsonify({'error': 'Imagem não encontrada'}), 404
-
-    image_path = IMAGE_FILES[image_key]
-    image = Image.open(image_path)
+    image = None
+    
+    # Verifica envio de arquivo
+    if 'image_file' in request.files and request.files['image_file'].filename != '':
+        file = request.files['image_file']
+        image = Image.open(file.stream).convert('RGB') 
+    
+    # Verifica chave de imagem pré-carregada
+    elif 'image_key' in request.form:
+        image_key = request.form.get('image_key')
+        if image_key in IMAGE_FILES:
+            image_path = IMAGE_FILES[image_key]
+            image = Image.open(image_path).convert('RGB')
+    
+    if image is None:
+        return jsonify({'error': 'Nenhuma imagem válida foi fornecida'}), 400
     
     # Pega todos os pixels da imagem
     pixels = list(image.getdata())
