@@ -59,6 +59,23 @@ Após iniciar o servidor e acessar a aplicação no navegador:
 
 ## Capturas de Tela
 
+<div align="center">
+Página Inicial
+<img width="1912" height="930" alt="image" src="https://github.com/user-attachments/assets/f36f561e-d9bc-4bfc-ba5e-6eff3a418d0b" />
+</div>
+<br>
+
+<div align="center">
+Quantização - Mona Lisa 
+<img width="1897" height="926" alt="image" src="https://github.com/user-attachments/assets/a4f4abd4-f255-4889-b554-74ea911df4e3" />
+</div>
+<br>
+
+<div align="center">
+Quantização - Moça com o Brinco de Pérola
+<img width="1870" height="925" alt="image" src="https://github.com/user-attachments/assets/80ebd8eb-6c03-41e1-b1fd-689c1c896229" />
+</div>
+<br>
 
 ## Conclusões
 
