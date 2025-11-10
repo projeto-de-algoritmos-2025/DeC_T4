@@ -3,40 +3,76 @@ document.addEventListener('DOMContentLoaded', () => {
     const visualizationsWrapper = document.getElementById('visualization-wrapper');
     const colorSelect = document.getElementById('num-colors-select');
     const imageChoices = document.querySelectorAll('.image-choice');
+    const imageUploadInput = document.getElementById('image-upload-input');
+    const uploadCardLabel = document.getElementById('upload-card-label');
+    const uploadCardText = document.getElementById('upload-card-text');
 
-    let selectedImage = null;
+    let selectedImageKey = null;
+    let uploadedFile = null;
     let selectedImageTitle = '';
+    let originalImageSrc = '';
 
     // Lógica para selecionar imagem
     imageChoices.forEach(choice => {
         choice.addEventListener('click', () => {
+            // Limpa a seleção
             imageChoices.forEach(c => c.classList.remove('selected'));
+            uploadCardLabel.classList.remove('selected');
+            uploadCardText.textContent = 'Enviar Imagem'; // Card de upload volta ao texto original
+
+            // Adiciona seleção ao clicado
             choice.classList.add('selected');
 
-            selectedImage = choice.dataset.image;
+            // Define a imagem pré-definida
+            selectedImageKey = choice.dataset.image;
             selectedImageTitle = choice.querySelector('.card-body span').textContent.trim();
+            originalImageSrc = choice.querySelector('img').src;
+
+            // Limpa o input de arquivo
+            uploadedFile = null;
+            imageUploadInput.value = '';
 
             startBtn.disabled = false;
         });
     });
 
+    // Lógica para o upload de arquivo
+    imageUploadInput.addEventListener('change', (event) => {
+        if (event.target.files && event.target.files[0]) {
+            uploadedFile = event.target.files[0];
+
+            // Deseleciona as imagens 
+            imageChoices.forEach(c => c.classList.remove('selected'));
+            selectedImageKey = null;
+
+            uploadCardLabel.classList.add('selected');
+            uploadCardText.textContent = uploadedFile.name.substring(0, 15) + '...'; // Mostra o nome do arquivo
+
+            // Define os títulos e a URL da imagem original
+            selectedImageTitle = uploadedFile.name;
+            originalImageSrc = URL.createObjectURL(uploadedFile);
+
+            startBtn.disabled = false;
+        }
+    });
+
     // Botão iniciar
     startBtn.addEventListener('click', async () => {
-        if (!selectedImage) return;
+        if (!selectedImageKey && !uploadedFile) return;
 
         visualizationsWrapper.innerHTML = ''; // Limpa anterior
         startBtn.disabled = true;
+
         startBtn.innerHTML = `
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Processando...
-        `; // Adiciona um spinner do Bootstrap
+        `;
 
         const numColors = colorSelect.value;
 
         // Vis do resultado
         const vizContainer = document.createElement('div');
         vizContainer.className = 'row justify-content-center';
-
         const cardHTML = `
             <div class="col-lg-10">
                 <div class="card shadow-sm mb-4">
@@ -75,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
         vizContainer.innerHTML = cardHTML;
         visualizationsWrapper.appendChild(vizContainer);
 
-
         // Seleciona elementos dentro do vizContainer
         const loadingIndicator = vizContainer.querySelector('#loading-indicator');
         const imageResults = vizContainer.querySelector('#image-results');
@@ -84,15 +119,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalImgEl = vizContainer.querySelector('#original-img');
         const quantizedImgEl = vizContainer.querySelector('#quantized-img');
 
+        // Envia com FormData
+        const formData = new FormData();
+        formData.append('num_colors', numColors);
+
+        if (uploadedFile) {
+            formData.append('image_file', uploadedFile);
+        } else if (selectedImageKey) {
+            formData.append('image_key', selectedImageKey);
+        }
+
         try {
             // Chama a API no Flask
             const response = await fetch('/quantize', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    image: selectedImage,
-                    num_colors: numColors
-                }),
+                body: formData,
             });
             const data = await response.json();
 
@@ -100,15 +141,21 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingIndicator.style.display = 'none';
 
             // Mostra a imagem original
-            originalImgEl.src = document.querySelector(`.image-choice.selected img`).src;
+            originalImgEl.src = originalImageSrc;
+            originalImgEl.onload = () => {
+                // Libera memória
+                if (uploadedFile) {
+                    URL.revokeObjectURL(originalImageSrc);
+                }
+            }
 
             // Mostra a nova imagem quantizada
             quantizedImgEl.src = data.quantized_src;
 
-            // Mostra a área de resultados
+            // Area de resultados
             imageResults.classList.remove('d-none');
 
-            // Mostra a paleta de cores
+            // Paleta de cores
             data.palette.forEach(color => {
                 const colorSwatch = document.createElement('div');
                 colorSwatch.className = 'color-swatch';
