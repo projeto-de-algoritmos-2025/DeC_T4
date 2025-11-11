@@ -82,3 +82,7 @@ Quantização - Moça com o Brinco de Pérola
 O projeto é uma ferramenta eficaz para visualizar a aplicação de algoritmos de **Dividir e Conquistar** em um problema prático de processamento de imagem. A principal conclusão é a eficiência ganha ao utilizar a **Mediana das Medianas**, pois, em um algoritmo *Median Cut* padrão, seria necessário ordenar o balde de pixels a cada divisão para encontrar a mediana, uma operação de custo **$O(n \log n)$**. Com o MOM, encontramos a mediana em tempo linear **$O(n)$**.
 
 Isso garante que o algoritmo de divisão seja o mais otimizado possível, tornando a quantização de cores significativamente mais rápida, especialmente para imagens com milhões de pixels.
+
+## Gravação 
+
+[Link da gravação](https://youtu.be/sGqVQ1m-Dfk)
